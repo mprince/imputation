@@ -64,25 +64,33 @@ kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= 
     cat("column(s)", which(col_na), "are entirely missing.")
     stop("Please fix missing columns.")
   }
-  if (any(row_na)) {
-    cat("row(s)", which(row_na), "are entirely missing.")
-    warning("These row(s)' values will be imputed to column means.")
-  }
   
   # 01b. Test if variables on same scale
   #--------------------------------------------------------
   unequal_var <- var_tests(x, bonf= TRUE)
   if (nrow(unequal_var) > 0) warning(paste("Some variables appear to have unequal variances.",
-          "KNN is best with equally scaled variables."))
+                                           "KNN is best with equally scaled variables."))
   
-
+  
   # 01c. Compute distance matrix if needed
   #--------------------------------------------------------
   if (verbose) print("Computing distance matrix...")
   if (is.null(x.dist)) x.dist = dist(x)
   if (verbose) print("Distance matrix complete")
   
-  # 02. Impute
+  # 02a. Impute missing rows to complete-data column means 
+  #--------------------------------------------------------
+  if (any(row_na)) {
+    cat("row(s)", which(row_na), "are entirely missing.")
+    warning("These row(s)' values will be imputed to column means.")
+    
+    col_means <- colMeans(x, na.rm=T)
+    for (i in row_na) {
+      x[i,] <- col_means
+    }
+  }
+  
+  # 02b. Impute
   #--------------------------------------------------------
   x.missing.imputed = t(apply(prelim$x.missing, 1, function(i) {
     rowIndex = as.numeric(i[1])
@@ -114,10 +122,13 @@ kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= 
   x[prelim$missing.rows.indices,] = x.missing.imputed
 
   #Things that were not able to be imputed are set to 0
-  missing.matrix2 = is.na(x)
-  x[missing.matrix2] = 0
-
-  return(list(x=x, missing.matrix=missing.matrix))
+  num_errors = sum(is.na(x))
+  if (num_errors > 0) {
+    return(list(x=x, missing_matrix=missing.matrix, num_errors= num_errors))
+  } else {
+    return(list(x=x, missing_matrix=missing.matrix))  
+  }
+  
 }
 
 #' CV for kNNImpute
