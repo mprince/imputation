@@ -1,9 +1,8 @@
 
 
 # @param x a data frame or matrix where each row represents a different record
-# @param byrow Logical. 
 # @param verbose Logical. If \code{TRUE} output some statistics on imputation size.
-impute.prelim = function(x, byrow = T, verbose=F) {
+impute.prelim = function(x, verbose=F) {
   
   # 00. get some initial statistics on missingness.
   missing.matrix = is.na(x)
@@ -28,8 +27,7 @@ impute.prelim = function(x, byrow = T, verbose=F) {
   }))
   
   # 01. create x.missing
-  if (byrow) x.missing = cbind(1:nrow(x),x)[missing.rows.indices,,drop=F]
-  else x.missing = rbind(1:ncol(x),x)[,missing.cols.indices,drop=F]
+  x.missing = rbind(1:ncol(x),x)[,missing.cols.indices,drop=F]
   
   # 02. return
   return(list(missing.matrix= missing.matrix,
