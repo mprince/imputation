@@ -6,32 +6,28 @@
 #' value using the imputation function on the k-length vector of values
 #' found from the neighbors.
 #' 
-#' The default impute.fn weighs the k values by their respective distances.
-#'   First the smallest k distances are extracted into the variable smallest.distances
-#'   Then, the corresponding values are extracted to knn.values.  Finally, knn.weights
-#'   normalizes the distances by the max distance, and are subtracted by 1.  The result
-#'   is the weighted mean of the values of the nearest neighbors and their weight based
-#'   on their distance.  It is implemented as follows:
+#' The default \code{impute.fn} weighs the $k$ values by their respective distances.
+#'   The result is the weighted mean of the values of the nearest neighbors 
+#'   with weights based on their distance.  It is implemented as follows:
 #' \preformatted{impute.fn = function(values, distances, k) {
 #'   ranks = order(distances)
 #'   smallest.distances = distances[ranks][1:k]
-#'   #values corresponding to smallest distances
 #'   knn.values = values[ranks][1:k]
 #'   knn.weights = 1 - (smallest.distances / max(distances))
 #'   weighted.mean(knn.values, knn.weights)
 #' }}
-#' A simple mean can be implemented as follows:
+#' Alternatively, a simple mean can be implemented as follows:
 #' \preformatted{impute.fn = function(values, distances, k) {
 #'   ranks = order(distances)
 #'   mean(distances[ranks][1:k])
 #' }}
+#' 
 #' @param x a \code{matrix} or \code{data.frame} which can be coerced to a matrix
 #'  where each row represents a different record
 #' @param k the number of neighbors to use for imputation
-#' @param x.dist an optional, pre-computed distance matrix to be used for kNN
-#' @param impute.fn the imputation function to run on the length k vector of values for
-#'   a missing feature.  Defaults to a weighted mean of the neighboring values weighted
-#'   by the distance of the neighbors
+#' @param x.dist Optional. A pre-computed distance matrix to be used for kNN
+#' @param impute.fn The imputation function to run on the length k vector of values for
+#'   a missing feature.  Defaults to weighted mean-KNN; see Details. 
 #' @param verbose if \code{TRUE} print status updates
 #' @param check.scale Logical. If \code{TRUE} compute pairwise variance tests to see if
 #' variables are on a common scale. Bonferroni correction applied.
