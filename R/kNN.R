@@ -25,13 +25,16 @@
 #'   ranks = order(distances)
 #'   mean(distances[ranks][1:k])
 #' }}
-#' @param x a data frame or matrix where each row represents a different record
+#' @param x a \code{matrix} or \code{data.frame} which can be coerced to a matrix
+#'  where each row represents a different record
 #' @param k the number of neighbors to use for imputation
 #' @param x.dist an optional, pre-computed distance matrix to be used for kNN
 #' @param impute.fn the imputation function to run on the length k vector of values for
 #'   a missing feature.  Defaults to a weighted mean of the neighboring values weighted
 #'   by the distance of the neighbors
-#' @param verbose if TRUE print status updates
+#' @param verbose if \code{TRUE} print status updates
+#' @param check.scale Logical. If \code{TRUE} compute pairwise variance tests to see if
+#' variables are on a common scale. Bonferroni correction applied.
 #' @references Missing value estimation methods for DNA microarrays.  Troyanskaya et al.
 #' @examples
 #'   x = matrix(rnorm(100),10,10)
@@ -39,63 +42,82 @@
 #'   x[x.missing] = NA
 #'   kNNImpute(x, 3)
 #' @export
-kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=T) {
+kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= TRUE) {
+  
+  # 01a. Do some preliminaries
+  #--------------------------------------------------------
+  if (is.data.frame(x)) x <- as.matrix(x)
   if (!is.matrix(x)) stop("x should be a numeric data matrix")
   if(k >= nrow(x)) stop("k must be less than the number of rows in x")
 
   prelim = impute.prelim(x)
-  if (prelim$numMissing == 0) return (x)
-  missing.matrix = prelim$missing.matrix
-  x.missing = prelim$x.missing
-  missing.rows.indices = prelim$missing.rows.indices
+  if (prelim$numMissing == 0) return (x) # no missing
 
-  if (missing(impute.fn)) 
-    impute.fn = function(values, distances, k) {
-      ranks = order(distances)
-      smallest.distances = distances[ranks]
-      #values corresponding to smallest distances
-      knn.values = values[ranks][1:k]
-      knn.weights = 1 - (smallest.distances / max(distances)) [1:k]
-      weighted.mean(knn.values, knn.weights)
-    }
+  if (missing(impute.fn)) {
+    impute.fn <- imputation:::impute.fn
+  }
+  
+  col_na <- apply(x, 2, function(j) all(is.na(j)))
+  row_na <- apply(x, 1, function(i) all(is.na(i)))
+  
+  if (any(col_na)) {
+    cat("column(s)", which(col_na), "are entirely missing.")
+    stop("Please fix missing columns.")
+  }
+  if (any(row_na)) {
+    cat("row(s)", which(row_na), "are entirely missing.")
+    warning("These row(s)' values will be imputed to column means.")
+  }
+  
+  # 01b. Test if variables on same scale
+  #--------------------------------------------------------
+  unequal_var <- var_tests(x, bonf= TRUE)
+  if (nrow(unequal_var) > 0) warning(paste("Some variables appear to have unequal variances.",
+          "KNN is best with equally scaled variables."))
+  
 
+  # 01c. Compute distance matrix if needed
+  #--------------------------------------------------------
   if (verbose) print("Computing distance matrix...")
   if (is.null(x.dist)) x.dist = dist(x)
   if (verbose) print("Distance matrix complete")
   
-  x.missing.imputed = t(apply(x.missing, 1, function(i) {
+  # 02. Impute
+  #--------------------------------------------------------
+  x.missing.imputed = t(apply(prelim$x.missing, 1, function(i) {
     rowIndex = as.numeric(i[1])
     i.original = unlist(i[-1])
+    
     if(verbose) print(paste("Imputing row", rowIndex,sep=" "))
-    missing.cols = which(missing.matrix[rowIndex,])
+    missing.cols = which(prelm$missing.matrix[rowIndex,])
     if(length(missing.cols) == ncol(x))
       warning( paste("Row",rowIndex,"is completely missing",sep=" ") )
+    
     imputed.values = sapply(missing.cols, function(j) {
       #find neighbors that have data on the jth column
-      neighbor.indices = which(!missing.matrix[,j])
+      neighbor.indices = which(!prelim$missing.matrix[,j])
       #lookup the distance to these neighbors
       #order the neighbors to find the closest ones
       if (!is.null(x.dist)) {
         indices.1d = .dist.2dto1d(rowIndex, neighbor.indices, nrow(x))
         knn.dist = x.dist[indices.1d]
       }
-      else knn.dist = pdist(x, indices.A = rowIndex,
+      else {
+        knn.dist = pdist(x, indices.A = rowIndex,
                             indices.B = neighbor.indices)@dist
-      impute.fn(x[neighbor.indices,j], knn.dist, k)
+      }
+      return(impute.fn(x[neighbor.indices, j], knn.dist, k))
     })
     i.original[missing.cols] = imputed.values
-    i.original
+    return(i.original)
   }))
-  x[missing.rows.indices,] = x.missing.imputed
+  x[prelim$missing.rows.indices,] = x.missing.imputed
 
   #Things that were not able to be imputed are set to 0
   missing.matrix2 = is.na(x)
   x[missing.matrix2] = 0
 
-  return (list(
-    x=x,
-    missing.matrix=missing.matrix
-  ))
+  return(list(x=x, missing.matrix=missing.matrix))
 }
 
 #' CV for kNNImpute
