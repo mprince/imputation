@@ -7,11 +7,11 @@ imputation
 
 Missing data imputation (also known as matrix completion) is an extremely difficult science that tries to fill in missing values of a dataset with the best guess.  Recently, it was popularized by the Netflix Challenge, where a matrix of Netflix users and their movie ratings were presented to the data science community to see if algorithms could be developed to predict how a user would rate a certain movie that the user has not yet seen.
 
-References:
+## References:
 * [Missing value estimation methods for DNA microarrays](http://bioinformatics.oxfordjournals.org/content/17/6/520.full.pdf).  Troyanskaya, et al.
 * [Improved methods for the imputation of missing data by nearest neighbor methods](http://www.sciencedirect.com/science/article/pii/S0167947315001061) Tutz and Ramzan 2015
 
-##Imputation Algorithms Presented
+## Imputation Algorithms Presented
 
 * Mean Imputation
 * k-Nearest Neighbors
