@@ -38,9 +38,7 @@
 #'   x[x.missing] = NA
 #'   kNNImpute(x, 3)
 #' @export
-kNNImpute = function(x, k, x.dist = NULL, impute_fn, verbose=TRUE, check.scale= TRUE,
-                     kernal= c("vanilla", "gauss.rbf", "poly", "hyper.tan", "bessel", "laplace",
-                               "anova")) {
+kNNImpute = function(x, k, x.dist = NULL, impute_fn, verbose=TRUE, check.scale= TRUE) {
   
   # 01a. Do some preliminaries
   #--------------------------------------------------------
@@ -79,12 +77,12 @@ kNNImpute = function(x, k, x.dist = NULL, impute_fn, verbose=TRUE, check.scale= 
   
   # 01d. Get Kernal
   #--------------------------------------------------------
-  if (kernal= "rbfdot") {
-    kern <- rbfdot(sigma= 1)
-  }
-  else if (kernal == "vanilla") {
-    kern <- vanilladot()
-  }
+#   if (kernal= "rbfdot") {
+#     kern <- rbfdot(sigma= 1)
+#   }
+#   else if (kernal == "vanilla") {
+#     kern <- vanilladot()
+#   }
   
   # 02a. Impute missing rows to complete-data column means 
   #--------------------------------------------------------
@@ -125,7 +123,7 @@ kNNImpute = function(x, k, x.dist = NULL, impute_fn, verbose=TRUE, check.scale= 
         knn.dist = pdist::pdist(x, indices.A = rowIndex,
                             indices.B = neighbor.indices)@dist
       }
-      return(impute_fn(x[neighbor.indices, j], knn.dist, k, kernal= kernal))
+      return(impute_fn(x[neighbor.indices, j], knn.dist, k))
     })
     i.original[missing.cols] = imputed.values
     return(i.original)
