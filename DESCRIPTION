@@ -1,18 +1,16 @@
 Package: imputation
 Type: Package
 Title: imputation
-Version: 2.1
-Date: 2015-09-15
+Version: 0.1
+Date: 2015-09-16
 Authors@R: person("Alex", "Whitworth", email = "whitworth.alex@gmail.com",
-  role = c("aut","ctb", "cre"))
+  role = c("aut","cre"))
 URL: https://github.com/alexwhitworth/imputation
-Description: Fill missing values in a data matrix using mean, kNN, or linear imputation. kNN is done via weighted-kNN where weights are specified by an available kernal in kernlab.
+Description: Impute missing values in a data matrix using weighted-kNN.
+  Weights in w-kNN are specified using a Gaussian kernal, specified by kernlab.
 License: GPL
 LazyLoad: yes
 Depends:
     locfit, kernlab (>= 0.9)
-Suggests:
-    pdist,
-    foreach,
-    doMC,
+
 

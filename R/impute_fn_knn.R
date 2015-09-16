@@ -1,15 +1,20 @@
 
 
-# @title Imputation function for kNN
-# @description Function for KNN imputation. Distances are weighted by a kernal function
-# @param values 
-# @seealso \code{\link[kernlab]{dots}}}
-impute_fn_knn <- function(values, distances, k) {
+#' @title Imputation function for kNN
+#' @description Function for KNN imputation. Distances are weighted by a kernal function
+#' @param values The values from which imputation will take place
+#' @param distances The distances associated with each value
+#' @param k The number of neighbors used to impute
+#' @param kern The Gaussian kernal used for weighting
+#' @seealso \code{\link[kernlab]{dots}}
+#' @export
+impute_fn_knn <- function(values, distances, k, kern) {
   ranks <- order(distances)
-  smallest.distances <- distances[ranks]
-  #values corresponding to smallest distances
-  knn.values = values[ranks][1:k]
+  smallest_distances <- distances[ranks][1:k]
+  knn_values <- values[ranks][1:k]
+  # calculate weights
+  d <- kernelMatrix(kern, c(0, smallest_distances))[1, , drop= TRUE][-1]
+  knn_weights <- d / sum(d)
   
-  knn.weights = 1 - (smallest.distances / max(distances)) [1:k]
-  weighted.mean(knn.values, knn.weights)
+  weighted.mean(knn_values, knn_weights)
 }

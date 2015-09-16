@@ -1,2 +1,2 @@
-benchmark.R
-test1.R
+^.*\.Rproj$
+^\.Rproj\.user$
