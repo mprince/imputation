@@ -10,10 +10,14 @@ imputation
     - (1) Focus exclusively on kNN (specifically weighted-kNN)
     - (2) To work with larger datasets (ie- for memory efficiency), distance is computed row by row, instead of for the entire matrix at a time.
     - (3) Distances are specified as L-q distances:
-    $$d_q(x_i, x_j) = \left{\frac{1}{m} \sum_{s=1}^p |x_{is} - x_{js}|^q I(x_{is} =  observed) I(x_{js} = observed) \right}$$
+    ```
+    \deqn{d_q(x_i, x_j) =
+        \left{\frac{1}{m} \sum_{s=1}^p |x_{is} - x_{js}|^q I(x_{is} = observed)
+        I(x_{js} = observed) \right}}
         where
-            - $m$ is the number of columns where both $x_i$ and $x_j$ are observed.
-            - $q$ is an integer >= 1
+            - \eqn{m} is the number of columns where both \eqn{x_i} and \eqn{x_j} are observed.
+            - \eqn{q} is an integer >= 1
+    ```
     - (4) Weights for kNN are calculated via Gaussian kernals
 
 
