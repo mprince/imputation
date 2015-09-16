@@ -51,7 +51,7 @@ kNNImpute = function(x, k, x.dist = NULL, impute_fn, verbose=TRUE, check.scale= 
   if (prelim$numMissing == 0) return (x) # no missing
 
   if (missing(impute_fn)) {
-    impute_fn <- imputation:::impute_fn
+    impute_fn <- imputation:::impute_fn_knn
   }
   
   col_na <- apply(x, 2, function(j) all(is.na(j)))
