@@ -18,7 +18,7 @@ imputation
             - \eqn{m} is the number of columns where both \eqn{x_i} and \eqn{x_j} are observed.
             - \eqn{q} is an integer >= 1
     ```
-    - (4) Weights for kNN are calculated via Gaussian kernals
+    - (4) Weights for kNN are calculated via Gaussian kernels
 
 
 ## References:
