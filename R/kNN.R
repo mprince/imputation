@@ -2,14 +2,14 @@
 #'
 #' Imputation using k-nearest neighbors.
 #' For each record, identify missinng features.  For each missing feature
-#' find the k nearest neighbors which have that feature.  Impute the missing
+#' find the \eqn{k} nearest neighbors which have that feature.  Impute the missing
 #' value using the imputation function on the k-length vector of values
 #' found from the neighbors.
 #' 
-#' The default \code{impute.fn} weighs the $k$ values by their respective distances.
+#' The default \code{impute_fn} weighs the \eqn{k} values by their respective distances.
 #'   The result is the weighted mean of the values of the nearest neighbors 
 #'   with weights based on their distance.  It is implemented as follows:
-#' \preformatted{impute.fn = function(values, distances, k) {
+#' \preformatted{impute_fn = function(values, distances, k) {
 #'   ranks = order(distances)
 #'   smallest.distances = distances[ranks][1:k]
 #'   knn.values = values[ranks][1:k]
@@ -17,7 +17,7 @@
 #'   weighted.mean(knn.values, knn.weights)
 #' }}
 #' Alternatively, a simple mean can be implemented as follows:
-#' \preformatted{impute.fn = function(values, distances, k) {
+#' \preformatted{impute_fn = function(values, distances, k) {
 #'   ranks = order(distances)
 #'   mean(distances[ranks][1:k])
 #' }}
@@ -26,7 +26,7 @@
 #'  where each row represents a different record
 #' @param k the number of neighbors to use for imputation
 #' @param x.dist Optional. A pre-computed distance matrix to be used for kNN
-#' @param impute.fn The imputation function to run on the length k vector of values for
+#' @param impute_fn The imputation function to run on the length k vector of values for
 #'   a missing feature.  Defaults to weighted mean-KNN; see Details. 
 #' @param verbose if \code{TRUE} print status updates
 #' @param check.scale Logical. If \code{TRUE} compute pairwise variance tests to see if
@@ -38,10 +38,13 @@
 #'   x[x.missing] = NA
 #'   kNNImpute(x, 3)
 #' @export
-kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= TRUE) {
+kNNImpute = function(x, k, x.dist = NULL, impute_fn, verbose=TRUE, check.scale= TRUE,
+                     kernal= c("vanilla", "gauss.rbf", "poly", "hyper.tan", "bessel", "laplace",
+                               "anova")) {
   
   # 01a. Do some preliminaries
   #--------------------------------------------------------
+  kernal <- match.arg(kernal, several.ok= FALSE)
   if (is.data.frame(x)) x <- as.matrix(x)
   if (!is.matrix(x)) stop("x should be a numeric data matrix")
   if(k >= nrow(x)) stop("k must be less than the number of rows in x")
@@ -49,8 +52,8 @@ kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= 
   prelim = impute.prelim(x)
   if (prelim$numMissing == 0) return (x) # no missing
 
-  if (missing(impute.fn)) {
-    impute.fn <- imputation:::impute.fn
+  if (missing(impute_fn)) {
+    impute_fn <- imputation:::impute_fn
   }
   
   col_na <- apply(x, 2, function(j) all(is.na(j)))
@@ -74,6 +77,15 @@ kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= 
   if (is.null(x.dist)) x.dist = dist(x)
   if (verbose) print("Distance matrix complete")
   
+  # 01d. Get Kernal
+  #--------------------------------------------------------
+  if (kernal= "rbfdot") {
+    kern <- rbfdot(sigma= 1)
+  }
+  else if (kernal == "vanilla") {
+    kern <- vanilladot()
+  }
+  
   # 02a. Impute missing rows to complete-data column means 
   #--------------------------------------------------------
   if (any(row_na)) {
@@ -88,18 +100,21 @@ kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= 
   
   # 02b. Impute
   #--------------------------------------------------------
-  x.missing.imputed = t(apply(prelim$x.missing, 1, function(i) {
+  x.missing.imputed <- apply(prelim$x.missing, 1, function(i) {
     rowIndex = as.numeric(i[1])
     i.original = unlist(i[-1])
     
     if(verbose) print(paste("Imputing row", rowIndex,sep=" "))
+    
     missing.cols = which(prelm$missing.matrix[rowIndex,])
+    
     if(length(missing.cols) == ncol(x))
       warning( paste("Row",rowIndex,"is completely missing",sep=" ") )
     
     imputed.values = sapply(missing.cols, function(j) {
       #find neighbors that have data on the jth column
       neighbor.indices = which(!prelim$missing.matrix[,j])
+
       #lookup the distance to these neighbors
       #order the neighbors to find the closest ones
       if (!is.null(x.dist)) {
@@ -107,14 +122,14 @@ kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= 
         knn.dist = x.dist[indices.1d]
       }
       else {
-        knn.dist = pdist(x, indices.A = rowIndex,
+        knn.dist = pdist::pdist(x, indices.A = rowIndex,
                             indices.B = neighbor.indices)@dist
       }
-      return(impute.fn(x[neighbor.indices, j], knn.dist, k))
+      return(impute_fn(x[neighbor.indices, j], knn.dist, k, kernal= kernal))
     })
     i.original[missing.cols] = imputed.values
     return(i.original)
-  }))
+  })
   x[prelim$missing.rows.indices,] = x.missing.imputed
 
   #Things that were not able to be imputed are set to 0
@@ -127,50 +142,6 @@ kNNImpute = function(x, k, x.dist = NULL, impute.fn, verbose=TRUE, check.scale= 
   
 }
 
-#' CV for kNNImpute
-#'
-#' Cross Validation for kNNImpute
-#' Artificially erase some data and run kNNImpute multiple times,
-#' varying k from 1 to k.max.  For each k, compute the RMSE on the subset of x
-#' for which data was artificially erased.
-#' @param x a data frame or matrix where each row represents a different record
-#' @param k.max the largest amount of neighbors to try kNN Impute
-#' @param parallel runs each run for k = 1 to k = k.max in parallel.  Requires
-#'   a parallel backend to be registered
-#' @examples
-#'   x = matrix(rnorm(100),10,10)
-#'   x.missing = x > 1
-#'   x[x.missing] = NA
-#'   cv.kNNImpute(x)
-#' @export
-cv.kNNImpute = function(x, k.max=5, parallel = F) {
-  if (!is.matrix(x)) stop("x should be a numeric data matrix")
-  if (k.max >= nrow(x)) stop("k.max must be less than nrow(x)")
-
-  prelim = cv.impute.prelim(x)
-  remove.indices = prelim$remove.indices
-  x.train = prelim$x.train
-
-  x.dist = dist(x)
-  if (parallel) {
-    if (!require(foreach)) stop("R package foreach is required for parallel execution, as well
-                                 as a registered parallel backend")
-    rmse = foreach (i=1:k.max, .combine = c, .packages = c('imputation')) %dopar% {
-      x.imputed = kNNImpute(x.train, i, x.dist, verbose=F)$x
-      error = (x.imputed[remove.indices] - x[remove.indices])
-      sqrt(mean(error^2))
-    }
-  }
-  else {
-    rmse = sapply(1:k.max, function(i) {
-      x.imputed = kNNImpute(x.train, i, x.dist, verbose=F)$x
-      error = (x.imputed[remove.indices] - x[remove.indices])
-      sqrt(mean(error^2))
-    })
-  }
-  list(k = which.min(rmse), rmse = rmse[which.min(rmse)],
-       k.full = 1:k.max, rmse.full = rmse)
-}
 
 #' 2D indices to 1D indices
 #'

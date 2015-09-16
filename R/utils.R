@@ -26,7 +26,7 @@ impute.prelim = function(x, verbose=F) {
     any(i)
   }))
   
-  # 01. create x.missing
+  # 01. create x.missing -- adding a row identifier
   x.missing = rbind(1:ncol(x),x)[,missing.cols.indices,drop=F]
   
   # 02. return
@@ -37,17 +37,6 @@ impute.prelim = function(x, verbose=F) {
                  x.missing= x.missing))
 }
 
-# @title Imputation function
-# @description Function for KNN imputation via weighted Euclidean distance
-# @param values 
-impute.fn <- function(values, distances, k) {
-  ranks = order(distances)
-  smallest.distances = distances[ranks]
-  #values corresponding to smallest distances
-  knn.values = values[ranks][1:k]
-  knn.weights = 1 - (smallest.distances / max(distances)) [1:k]
-  weighted.mean(knn.values, knn.weights)
-}
 
 ### cross-validation impute.prelim
 cv.impute.prelim = function(x, test.fraction = 1/3) {
@@ -82,7 +71,7 @@ var_tests <- function(x, bonf=TRUE) {
 calc_i_j <- function(mat, alpha= 0.05) {
   n <- which(mat < alpha)
   if (length(n) > 0) {
-    d <- dim(x)
+    d <- dim(mat)
     i <- ifelse(n %% d[1] == 0, d[1], n %% d[1])
     j <- ceiling(n / d[2])
     ret <- data.frame(i= i, j= j, alpha= mat[n])
