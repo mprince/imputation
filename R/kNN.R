@@ -42,7 +42,7 @@ kNNImpute = function(x, k, x.dist = NULL, impute_fn, verbose=TRUE, check.scale= 
   
   # 01a. Do some preliminaries
   #--------------------------------------------------------
-  kernal <- match.arg(kernal, several.ok= FALSE)
+  #kernal <- match.arg(kernal, several.ok= FALSE)
   if (is.data.frame(x)) x <- as.matrix(x)
   if (!is.matrix(x)) stop("x should be a numeric data matrix")
   if(k >= nrow(x)) stop("k must be less than the number of rows in x")
