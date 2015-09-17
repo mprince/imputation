@@ -51,10 +51,10 @@ impute_prelim = function(x) {
                  x_missing = NULL))
   }
   
-  missing_rows_indices = which(apply(missing_matrix, 1, function(i) {
+  missing_rows_indices = which(apply(x, 1, function(i) {
     any(is.na(i))
   }))
-  missing_cols_indices = which(apply(missing_matrix, 2, function(i) {
+  missing_cols_indices = which(apply(x, 2, function(i) {
     any(is.na(i))
   }))
   
