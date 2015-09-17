@@ -77,7 +77,7 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE) {
     i_original = unlist(i[-1])
     # verbose option
     if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
-    missing_cols <- which(prelim$missing_matrix[rowIndex,])
+    missing_cols <- which(is.na(x[rowIndex,])
     
     # calculate distances
     distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
@@ -100,8 +100,8 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE) {
   #--------------------------------------------------------
   num_errors = sum(is.na(x))
   if (num_errors > 0) {
-    return(list(x=x, missing_matrix= prelim$missing_matrix, num_errors= num_errors))
+    return(list(x=x, num_errors= num_errors))
   } else {
-    return(list(x=x, missing_matrix= prelim$missing_matrix))  
+    return(list(x=x))  
   }
 }

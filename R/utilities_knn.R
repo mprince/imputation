@@ -42,30 +42,27 @@ dist_q.matrix <- function(x, ref= 1, q= 2) {
 impute_prelim = function(x) {
   
   # 00. get some initial statistics on missingness.
-  missing_matrix = is.na(x)
-  numMissing = sum(missing_matrix) 
+  numMissing = sum(is.na(x)) 
   
   if(numMissing == 0) {
-    return(list (missing_matrix = missing_matrix,
-                 numMissing = numMissing,
+    return(list (numMissing = numMissing,
                  missing_rows_indices = NULL,
                  missing_cols_indices = NULL,
                  x_missing = NULL))
   }
   
   missing_rows_indices = which(apply(missing_matrix, 1, function(i) {
-    any(i)
+    any(is.na(i))
   }))
   missing_cols_indices = which(apply(missing_matrix, 2, function(i) {
-    any(i)
+    any(is.na(i))
   }))
   
   # 01. add a row identifier to x[, <missing columns>]
   x_missing = cbind(1:nrow(x),x)[missing_rows_indices,,drop=F]
   
   # 02. return
-  return(list (missing_matrix = missing_matrix,
-               numMissing = numMissing,
+  return(list (numMissing = numMissing,
                missing_rows_indices = missing_rows_indices,
                missing_cols_indices = missing_cols_indices,
                x_missing = x_missing))
