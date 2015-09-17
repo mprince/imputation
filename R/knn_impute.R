@@ -60,8 +60,8 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE) {
   # 02a. Impute missing rows to complete-data column means 
   #--------------------------------------------------------
   if (any(row_na)) {
-    cat("row(s)", which(row_na), "are entirely missing.")
-    warning("These row(s)' values will be imputed to column means.")
+    cat("row(s)", which(row_na), "are entirely missing. These row(s)' values will be imputed to column means.")
+    warning("Rows with entirely missing values imputed to column means.")
     
     col_means <- colMeans(x, na.rm=T)
     for (i in row_na) {
