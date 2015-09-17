@@ -85,7 +85,7 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE) {
     # within the given row, impute by column
     imputed_values <- sapply(missing_cols, function(j, distances) {
       # which neighbors have data on column j?
-      neighbor_indices = which(!prelim$missing_matrix[,j])
+      neighbor_indices = which(!is.na(x)[,j])
       # impute
       return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
     }, distances= distances)
