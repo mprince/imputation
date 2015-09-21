@@ -13,7 +13,7 @@ impute_fn_knn <- function(values, distances, k, kern) {
   smallest_distances <- distances[ranks][1:k]
   knn_values <- values[ranks][1:k]
   # calculate weights
-  d <- kernelMatrix(kern, c(0, smallest_distances))[1, , drop= TRUE][-1]
+  d <- kernelMatrix(kern, c(0, smallest_distances))[1, -1, drop= TRUE]
   knn_weights <- d / sum(d)
   
   weighted.mean(knn_values, knn_weights)
