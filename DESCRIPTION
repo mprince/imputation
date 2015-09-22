@@ -2,7 +2,7 @@ Package: imputation
 Type: Package
 Title: imputation
 Version: 0.3
-Date: 2015-09-17
+Date: 2015-09-22
 Authors@R: person("Alex", "Whitworth", email = "whitworth.alex@gmail.com",
   role = c("aut","cre"))
 URL: https://github.com/alexwhitworth/imputation
