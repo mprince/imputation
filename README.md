@@ -5,7 +5,7 @@ imputation
 
 
 ## Release Notes
-- **9/15/2015**: Originally forked from [JeffWong](github.com/jeffwong/imputation)
+- **9/22/20115**: v0.3- removed references to `kernlab::kernelMatrix`. Improved speed by ~4x
 - **9/16/2015**: Package has been completely re-written to:
     - (1) Focus exclusively on kNN (specifically weighted-kNN)
     - (2) To work with larger datasets (ie- for memory efficiency), distance is computed row by row, instead of for the entire matrix at a time.
@@ -19,7 +19,7 @@ imputation
             - \eqn{q} is an integer >= 1
     ```
     - (4) Weights for kNN are calculated via Gaussian kernels
-
+- **9/15/2015**: Originally forked from [JeffWong](github.com/jeffwong/imputation)
 
 ## References:
 * [Improved methods for the imputation of missing data by nearest neighbor methods](http://www.sciencedirect.com/science/article/pii/S0167947315001061) Tutz and Ramzan 2015
