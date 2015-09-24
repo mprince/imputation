@@ -17,6 +17,8 @@
 #' @param verbose if \code{TRUE} print status updates
 #' @param check.scale Logical. If \code{TRUE} compute pairwise variance tests to see if
 #' variables are on a common scale. Bonferroni correction applied.
+#' @param parallel Logical. Do you wish to parallelize the code? Defaults to \code{TRUE}
+#' @param leave_cores How many cores do you wish to leave open to other processing?
 #' @references Improved Methods for the Impution of Missing Data by Nearest Neighbors Methods
 #' Tutz and Ramzan (2015)
 #' @examples
@@ -25,10 +27,17 @@
 #'   x[x_missing] = NA
 #'   kNN_impute(x, 3)
 #' @export
-kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE) {
+kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE,
+                      parallel= TRUE, leave_cores= 2) {
   
   # 01a. Do some preliminaries
   #--------------------------------------------------------
+  if (parallel == TRUE) {
+    if (leave_cores < 0 | leave_cores > detectCores()) {
+      stop("Must leave_cores between 0 (not recommended) and ", detectCores())
+    }
+  }
+  
   if (is.data.frame(x)) x <- as.matrix(x)
   if (!is.matrix(x)) stop("x should be a numeric data matrix")
   if(k < 1 | k >= nrow(x)) stop("k must be an integer in {1, nrow(x) - 1}")
@@ -69,29 +78,56 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE) {
     }
   }
   
-  # 02b. Impute
+  # 02b. Impute 
   #--------------------------------------------------------
-  # impute row-by-row
-  x_missing_imputed <- apply(prelim$x_missing, 1, function(i) {
-    rowIndex = as.numeric(i[1])
-    i_original = unlist(i[-1])
-    # verbose option
-    if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
-    missing_cols <- which(is.na(x[rowIndex,]))
+  if (parallel == FALSE) {
+    # impute row-by-row -- non parallel
+    x_missing_imputed <- apply(prelim$x_missing, 1, function(i) {
+      rowIndex = as.numeric(i[1])
+      i_original = unlist(i[-1])
+      # verbose option
+      if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
+      missing_cols <- which(is.na(x[rowIndex,]))
+      
+      # calculate distances
+      distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
+      
+      # within the given row, impute by column
+      imputed_values <- sapply(missing_cols, function(j, distances) {
+        # which neighbors have data on column j?
+        neighbor_indices = which(!is.na(x)[,j])
+        # impute
+        return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
+      }, distances= distances)
+      i_original[missing_cols] <- imputed_values
+      return(i_original)
+    })
+  } else if (parallel == TRUE) {
+    # impute row-by-row -- parallel 
+    cl <- makeCluster(detectCores() - leave_cores)
     
-    # calculate distances
-    distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
-    
-    # within the given row, impute by column
-    imputed_values <- sapply(missing_cols, function(j, distances) {
-      # which neighbors have data on column j?
-      neighbor_indices = which(!is.na(x)[,j])
-      # impute
-      return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
-    }, distances= distances)
-    i_original[missing_cols] <- imputed_values
-    return(i_original)
-  })
+    x_missing_imputed <- parRapply(cl= cl, prelim$x_missing, function(i) {
+      rowIndex = as.numeric(i[1])
+      i_original = unlist(i[-1])
+      # verbose option
+      if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
+      missing_cols <- which(is.na(x[rowIndex,]))
+      
+      # calculate distances
+      distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
+      
+      # within the given row, impute by column
+      imputed_values <- sapply(missing_cols, function(j, distances) {
+        # which neighbors have data on column j?
+        neighbor_indices = which(!is.na(x)[,j])
+        # impute
+        return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
+      }, distances= distances)
+      i_original[missing_cols] <- imputed_values
+      return(i_original)
+    })
+    stopCluster(cl)
+  }
   
   # insert imputations
   x[prelim$missing_rows_indices,] <- x_missing_imputed

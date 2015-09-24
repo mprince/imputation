@@ -27,7 +27,7 @@ impute_fn_knn <- function(values, distances, k, kern) {
 kern_wt <- function (kernel, x) {
   if (is(x, "vector")) x <- as.matrix(x)
   
-  sigma = kpar(kernel)$sigma
+  sigma = kernlab::kpar(kernel)$sigma
   n <- dim(x)[1]
   dota <- rowSums(x * x)/2
   return(exp(2 * sigma * (-dota))[-1])

@@ -5,6 +5,7 @@ imputation
 
 
 ## Release Notes
+- **9/24/2015**: v0.4- option to use `library(parallel)` to parallelize code. Speed tests pending on speed improvement
 - **9/22/20115**: v0.3- removed references to `kernlab::kernelMatrix`. Improved speed by ~4x
 - **9/16/2015**: Package has been completely re-written to:
     - (1) Focus exclusively on kNN (specifically weighted-kNN)

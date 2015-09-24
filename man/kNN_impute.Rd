@@ -4,7 +4,8 @@
 \alias{kNN_impute}
 \title{Imputation using weighted-kNN}
 \usage{
-kNN_impute(x, k, q = 2, verbose = TRUE, check.scale = TRUE)
+kNN_impute(x, k, q = 2, verbose = TRUE, check.scale = TRUE,
+  parallel = TRUE, leave_cores = 2)
 }
 \arguments{
 \item{x}{a \code{matrix} or \code{data.frame} which can be coerced to a matrix
@@ -18,6 +19,10 @@ where each row represents a different record}
 
 \item{check.scale}{Logical. If \code{TRUE} compute pairwise variance tests to see if
 variables are on a common scale. Bonferroni correction applied.}
+
+\item{parallel}{Logical. Do you wish to parallelize the code? Defaults to \code{TRUE}}
+
+\item{leave_cores}{How many cores do you wish to leave open to other processing?}
 
 \item{impute_fn}{The imputation function to run on the length k vector of values for
 a missing feature.  Defaults to weighted mean-KNN; see Details.}

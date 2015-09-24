@@ -1,16 +1,17 @@
 Package: imputation
 Type: Package
 Title: imputation
-Version: 0.3
-Date: 2015-09-22
+Version: 0.4
+Date: 2015-09-24
 Authors@R: person("Alex", "Whitworth", email = "whitworth.alex@gmail.com",
   role = c("aut","cre"))
 URL: https://github.com/alexwhitworth/imputation
 Description: Impute missing values in a data matrix using weighted-kNN.
   Weights in w-kNN are specified using a Gaussian kernal, specified by kernlab.
+  Parallel computing is allowed (version 0.4).
 License: GPL
 LazyLoad: yes
 Depends:
-    locfit, kernlab (>= 0.9)
+    locfit, kernlab (>= 0.9), parallel (>= 3.0)
 
 
