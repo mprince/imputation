@@ -8,7 +8,7 @@ Authors@R: person("Alex", "Whitworth", email = "whitworth.alex@gmail.com",
 URL: https://github.com/alexwhitworth/imputation
 Description: Impute missing values in a data matrix using weighted-kNN.
   Weights in w-kNN are specified using a Gaussian kernal, specified by kernlab.
-  Parallel computing is allowed (version 0.4).
+  Parallel computing is allowed (version 0.4). Timing tests indicate that the current implementation has exponential time complexity. I suggest not using it on datasets of ~10^5 observations
 License: GPL
 LazyLoad: yes
 Depends:
