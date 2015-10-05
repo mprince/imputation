@@ -5,6 +5,7 @@ imputation
 
 
 ## Release Notes
+- **10/5/2015**: Removed references to `sapply(...)`, using `unlist(lapply(...))` instead v0.4.1
 - **9/29/2015**: Timing tests indicate that the current implementation of `kNN_impute` has exponential time complexity. I suggest not using it on datasets of ~10^5 observations
 - **9/24/2015**: v0.4- option to use `library(parallel)` to parallelize imputation. Speed tests on **Intel i7-4600U (4-cores) with 12GB RAM** with tests on 1, 3, and 4 cores show a  speed improvement of 14% with 3 cores and 9% with 4 cores.
 - **9/22/20115**: v0.3- removed references to `kernlab::kernelMatrix`. Improved speed by ~4x

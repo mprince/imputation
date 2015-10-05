@@ -86,19 +86,20 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE,
       rowIndex = as.numeric(i[1])
       i_original = unlist(i[-1])
       # verbose option
-      if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
+      if(verbose) {print(paste("Imputing row", rowIndex, sep=" "))}
+      
       missing_cols <- which(is.na(x[rowIndex,]))
       
       # calculate distances
       distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
       
       # within the given row, impute by column
-      imputed_values <- sapply(missing_cols, function(j, distances) {
+      imputed_values <- unlist(lapply(missing_cols, function(j, distances) {
         # which neighbors have data on column j?
         neighbor_indices = which(!is.na(x)[,j])
         # impute
         return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
-      }, distances= distances)
+      }, distances= distances))
       i_original[missing_cols] <- imputed_values
       return(i_original)
     })
@@ -109,20 +110,20 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE,
     x_missing_imputed <- parRapply(cl= cl, prelim$x_missing, function(i) {
       rowIndex = as.numeric(i[1])
       i_original = unlist(i[-1])
-      # verbose option
-      if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
+      # verbose option -- in parallel, I think this only returns at the end.
+#       if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
       missing_cols <- which(is.na(x[rowIndex,]))
       
       # calculate distances
       distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
       
       # within the given row, impute by column
-      imputed_values <- sapply(missing_cols, function(j, distances) {
+      imputed_values <- unlist(lapply(missing_cols, function(j, distances) {
         # which neighbors have data on column j?
         neighbor_indices = which(!is.na(x)[,j])
         # impute
         return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
-      }, distances= distances)
+      }, distances= distances))
       i_original[missing_cols] <- imputed_values
       return(i_original)
     })
