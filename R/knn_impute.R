@@ -43,7 +43,7 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE,
   if(k < 1 | k >= nrow(x)) stop("k must be an integer in {1, nrow(x) - 1}")
   if (q < 1) stop("q must be an integer >= 1")
   
-  prelim = impute_prelim(x)
+  prelim = impute_prelim(x, parallel= parallel, leave_cores= leave_cores)
   if (prelim$numMissing == 0) return (x) # no missing
   
   col_na <- apply(x, 2, function(j) all(is.na(j)))

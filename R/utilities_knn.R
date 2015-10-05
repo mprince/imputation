@@ -39,7 +39,7 @@ dist_q.matrix <- function(x, ref= 1, q= 2) {
 
 
 # @param x a data frame or matrix where each row represents a different record
-impute_prelim = function(x) {
+impute_prelim = function(x, parallel= FALSE, leave_cores= 2) {
   
   # 00. get some initial statistics on missingness.
   numMissing = sum(is.na(x)) 
@@ -51,12 +51,25 @@ impute_prelim = function(x) {
                  x_missing = NULL))
   }
   
-  missing_rows_indices = which(apply(x, 1, function(i) {
-    any(is.na(i))
-  }))
-  missing_cols_indices = which(apply(x, 2, function(i) {
-    any(is.na(i))
-  }))
+  if (parallel == FALSE) {
+    missing_rows_indices = which(apply(x, 1, function(i) {
+      any(is.na(i))
+    }))
+    missing_cols_indices = which(apply(x, 2, function(j) {
+      any(is.na(j))
+    }))
+  } else {
+    cl <- makeCluster(detectCores() - leave_cores)
+    
+    missing_rows_indices = which(parRapply(cl= cl, x, function(i) {
+      any(is.na(i))
+    }))
+    missing_cols_indices = which(parCapply(cl= cl, x, function(j) {
+      any(is.na(j))
+    }))
+    
+    stopCluster(cl)
+  }
   
   # 01. add a row identifier to x[, <missing columns>]
   x_missing = cbind(1:nrow(x),x)[missing_rows_indices,,drop=F]
