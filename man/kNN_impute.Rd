@@ -4,7 +4,7 @@
 \alias{kNN_impute}
 \title{Imputation using weighted-kNN}
 \usage{
-kNN_impute(x, k, q = 2, verbose = TRUE, check.scale = TRUE,
+kNN_impute(x, k, q = 2, verbose = TRUE, check_scale = TRUE,
   parallel = TRUE, leave_cores = 2)
 }
 \arguments{
@@ -17,7 +17,7 @@ where each row represents a different record}
 
 \item{verbose}{if \code{TRUE} print status updates}
 
-\item{check.scale}{Logical. If \code{TRUE} compute pairwise variance tests to see if
+\item{check_scale}{Logical. If \code{TRUE} compute pairwise variance tests to see if
 variables are on a common scale. Bonferroni correction applied.}
 
 \item{parallel}{Logical. Do you wish to parallelize the code? Defaults to \code{TRUE}}
@@ -37,9 +37,8 @@ as described by Silverman (1998)
 }
 \examples{
 x = matrix(rnorm(100),10,10)
-  x_missing = x > 1
-  x[x_missing] = NA
-  kNN_impute(x, 3)
+  x[x > 1] = NA
+  kNN_impute(x, k=3, q=2)
 }
 \references{
 Improved Methods for the Impution of Missing Data by Nearest Neighbors Methods

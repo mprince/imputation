@@ -15,7 +15,7 @@
 #' @param impute_fn The imputation function to run on the length k vector of values for
 #'   a missing feature.  Defaults to weighted mean-KNN; see Details. 
 #' @param verbose if \code{TRUE} print status updates
-#' @param check.scale Logical. If \code{TRUE} compute pairwise variance tests to see if
+#' @param check_scale Logical. If \code{TRUE} compute pairwise variance tests to see if
 #' variables are on a common scale. Bonferroni correction applied.
 #' @param parallel Logical. Do you wish to parallelize the code? Defaults to \code{TRUE}
 #' @param leave_cores How many cores do you wish to leave open to other processing?
@@ -23,28 +23,25 @@
 #' Tutz and Ramzan (2015)
 #' @examples
 #'   x = matrix(rnorm(100),10,10)
-#'   x_missing = x > 1
-#'   x[x_missing] = NA
-#'   kNN_impute(x, 3)
+#'   x[x > 1] = NA
+#'   kNN_impute(x, k=3, q=2)
 #' @export
-kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE,
+kNN_impute = function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
                       parallel= TRUE, leave_cores= 2) {
   
   # 01a. Do some preliminaries
   #--------------------------------------------------------
   if (parallel == TRUE) {
-    if (leave_cores < 0 | leave_cores > detectCores()) {
-      stop("Must leave_cores between 0 (not recommended) and ", detectCores())
+    if (leave_cores < 0 | leave_cores > detectCores() | leave_cores %% 1 != 0) {
+      stop("leave_cores must be an integer between 0 (not recommended) 
+           and ", detectCores())
     }
   }
   
   if (is.data.frame(x)) x <- as.matrix(x)
-  if (!is.matrix(x)) stop("x should be a numeric data matrix")
-  if(k < 1 | k >= nrow(x)) stop("k must be an integer in {1, nrow(x) - 1}")
-  if (q < 1) stop("q must be an integer >= 1")
-  
-  prelim = impute_prelim(x, parallel= parallel, leave_cores= leave_cores)
-  if (prelim$numMissing == 0) return (x) # no missing
+  if (!is.numeric(x) | !is.matrix(x)) stop("x should be a numeric data matrix")
+  if(k < 1 | k >= nrow(x) | k %% 1 != 0) stop("k must be an integer in {1, nrow(x) - 1}")
+  if (q < 1 | q %% 1 != 0) stop("q must be an integer >= 1")
   
   col_na <- apply(x, 2, function(j) all(is.na(j)))
   row_na <- apply(x, 1, function(i) all(is.na(i)))
@@ -56,7 +53,7 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE,
   
   # 01b. Test if variables on same scale
   #--------------------------------------------------------
-  unequal_var <- var_tests(x, bonf= TRUE)
+  if (check_scale) unequal_var <- var_tests(x, bonf= TRUE)
   if (!is.null(unequal_var)) warning(paste("Some variables appear to have unequal variances.",
                                            "KNN is best with equally scaled variables."))
   
@@ -69,17 +66,21 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check.scale= TRUE,
   # 02a. Impute missing rows to complete-data column means 
   #--------------------------------------------------------
   if (any(row_na)) {
-    cat("row(s)", which(row_na), "are entirely missing. These row(s)' values will be imputed to column means.")
+    if (verbose) cat("row(s)", which(row_na), "are entirely missing. 
+                     These row(s)' values will be imputed to column means.")
     warning("Rows with entirely missing values imputed to column means.")
     
     col_means <- colMeans(x, na.rm=T)
-    for (i in row_na) {
+    for (i in which(row_na)) {
       x[i,] <- col_means
     }
   }
   
   # 02b. Impute 
   #--------------------------------------------------------
+  prelim = impute_prelim(x, parallel= parallel, leave_cores= leave_cores)
+  if (prelim$numMissing == 0) return (x) # no missing
+  
   if (parallel == FALSE) {
     # impute row-by-row -- non parallel
     x_missing_imputed <- apply(prelim$x_missing, 1, function(i) {

@@ -8,7 +8,7 @@
 #' @export
 dist_q <- function(x, y, q= 2) {
   if (!is.numeric(x) | !is.numeric(y)) stop("Both x and y must be numeric.")
-  if (q < 1) stop("q must be an integer >= 1")
+  if (q < 1 | q %% 1 != 0) stop("q must be an integer >= 1")
   
   x_obs <- !is.na(x)
   y_obs <- !is.na(y)
@@ -27,8 +27,9 @@ dist_q <- function(x, y, q= 2) {
 #' @export
 dist_q.matrix <- function(x, ref= 1, q= 2) {
   if (!is.numeric(x) | !is.matrix(x)) stop("x must be a numeric matrix.")
-  if (ref < 1 | ref > nrow(x)) stop("ref must be an ingeter in {1, nrow(x)}.")
-  if (q < 1) stop("q must be an integer >= 1")
+  if (ref < 1 | ref > nrow(x) | ref %% 1 != 0) 
+    stop("ref must be an ingeter in {1, nrow(x)}.")
+  if (q < 1 | q %% 1 != 0) stop("q must be an integer >= 1")
   
   x_ref <- x[ref,]
   x_rest <- x[-ref,]
