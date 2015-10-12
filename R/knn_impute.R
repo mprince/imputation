@@ -83,7 +83,7 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
   
   if (parallel == FALSE) {
     # impute row-by-row -- non parallel
-    x_missing_imputed <- apply(prelim$x_missing, 1, function(i) {
+    x_missing_imputed <- t(apply(prelim$x_missing, 1, function(i) {
       rowIndex = as.numeric(i[1])
       i_original = unlist(i[-1])
       # verbose option
@@ -103,7 +103,7 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
       }, distances= distances))
       i_original[missing_cols] <- imputed_values
       return(i_original)
-    })
+    }))
   } else if (parallel == TRUE) {
     # impute row-by-row -- parallel 
     cl <- makeCluster(detectCores() - leave_cores)
@@ -129,6 +129,8 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
       return(i_original)
     })
     stopCluster(cl)
+    x_missing_imputed <- matrix(x_missing_imputed, nrow= dim(prelim$x_missing)[1],
+                                ncol= dim(prelim$x_missing)[2] - 1, byrow= TRUE)
   }
   
   # insert imputations

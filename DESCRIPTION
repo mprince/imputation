@@ -1,7 +1,7 @@
 Package: imputation
 Type: Package
 Title: imputation
-Version: 0.5
+Version: 0.5.1
 Date: 2015-10-06
 Authors@R: person("Alex", "Whitworth", email = "whitworth.alex@gmail.com",
   role = c("aut","cre"))
