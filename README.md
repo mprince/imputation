@@ -1,10 +1,14 @@
 imputation
 ==========
 
-*Quoted from [JeffWong](github.com/jeffwong/imputation)*: Missing data imputation (also known as matrix completion) is an extremely difficult science that tries to fill in missing values of a dataset with the best guess.  Recently, it was popularized by the Netflix Challenge, where a matrix of Netflix users and their movie ratings were presented to the data science community to see if algorithms could be developed to predict how a user would rate a certain movie that the user has not yet seen.
+Missing data imputation (also known as matrix completion) is a difficult science that tries to fill in missing values of a dataset with a best guess. Multiple methods for such problems are available (eg. mean imputation, EM, etc). This package implements missing data imputation via weighted k nearest neighbors (w-kNN).
 
+Tests on the current version indicate the algorithm runs with exponential time complexity. Of note, >=v0.6 implements canopies to speed up the runtime on large datasets. Canopies are based on the ideas in McCallum et al (2000). Canopies are based on distance to the dataset centroid. In general, since canopies overlap with their neighbors, the use of canopies reduces the time complexity from  \eqn{2^{O(n)}} to approximately \eqn{2^{O(9n / c)}} where c is the number of canopies. Since, in large datasets, c can be quite large, this is a substantial savings.
+
+Canopies produce an approximate solution although they may produce an equivalent solution. Equivalence is guaranteed under the following condition. If for all observations x with k nearest neighbors, the canopy containing x also contains all k nearest neighbors. This should be the case when distance to each ovservation x is highly correlated to distance of each observation to the dataset centroid.
 
 ## Release Notes
+- **10/14/2015**: v0.6 -- implements canopies based on the ideas in McCallum et al (2000) to reduce computation time when working with large datasets.
 - **10/6/2015**: Wrote and passed unit tests. v0.5
 - **10/5/2015**: Removed references to `sapply(...)`, using `unlist(lapply(...))` instead. Added parallel option to `impute_prelim` (v0.4.1.).
 - **9/29/2015**: Timing tests indicate that the current implementation of `kNN_impute` has exponential time complexity. I suggest not using it on datasets of ~10^5 observations
@@ -27,8 +31,10 @@ imputation
 
 ## References:
 * [Improved methods for the imputation of missing data by nearest neighbor methods](http://www.sciencedirect.com/science/article/pii/S0167947315001061) Tutz and Ramzan 2015
+* [Efficient clustering of high-dimensional data sets with application to reference matching](ftp://ftp.cse.buffalo.edu/users/azhang/disc/disc01/cd1/out/papers/kdd/p169-mccallum.pdf) McCallum et al 2000
 
 ## Imputation Algorithms Presented
 
 * k-Nearest Neighbors
+* two-stage (ie canopied) k-Nearest Neighbors
 

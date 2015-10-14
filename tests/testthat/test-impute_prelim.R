@@ -25,6 +25,7 @@ test_that("missing: returns accurately", {
   
   miss_rows <- which(apply(x1, 1, function(x) any(is.na(x))))
   
+  
   expect_equal(impute_prelim(x1)$numMissing, 10)
   expect_equal(impute_prelim(x1)$missing_rows_indices, 
                miss_rows)
@@ -34,9 +35,11 @@ test_that("missing: returns accurately", {
                miss_rows)
   expect_equal(impute_prelim(x1, parallel= TRUE)$missing_cols_indices, 
                which(apply(x1, 2, function(x) any(is.na(x)))))
-  expect_equal(impute_prelim(x1)$x_missing[,1, drop= TRUE],
-               miss_rows)
   expect_equal(dim(impute_prelim(x1)$x_missing), c(length(miss_rows), ncol(x1) + 1))
   expect_equal(dim(impute_prelim(x1, parallel= TRUE)$x_missing), 
                c(length(miss_rows), ncol(x1) + 1))
+  
+  names(miss_rows) <- miss_rows
+  expect_equal(impute_prelim(x1)$x_missing[,1, drop= TRUE],
+               miss_rows)
 })

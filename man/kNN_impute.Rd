@@ -5,7 +5,8 @@
 \title{Imputation using weighted-kNN}
 \usage{
 kNN_impute(x, k, q = 2, verbose = TRUE, check_scale = TRUE,
-  parallel = TRUE, leave_cores = 2)
+  parallel = TRUE, leave_cores = ifelse(detectCores() <= 4, 1, 2),
+  n_canopies = NULL)
 }
 \arguments{
 \item{x}{a \code{matrix} or \code{data.frame} which can be coerced to a matrix
@@ -24,8 +25,8 @@ variables are on a common scale. Bonferroni correction applied.}
 
 \item{leave_cores}{How many cores do you wish to leave open to other processing?}
 
-\item{impute_fn}{The imputation function to run on the length k vector of values for
-a missing feature.  Defaults to weighted mean-KNN; see Details.}
+\item{n_subsets}{if a positive integer > 1, kNN imputation will be calculated on data subsets
+which are created in the data \code{x} based on a cheap distance metric. See details}
 }
 \description{
 Imputation using weighted k-nearest neighbors.
@@ -35,13 +36,39 @@ value using the \eqn{k} nearest neighbors having that feature. Weights are compu
 using a Gaussian kernal bandwidth parameter using 'Silverman's rule of thumb'
 as described by Silverman (1998)
 }
+\section{Details}{
+
+Imputation can be done on all observations in a single group or via overlapping
+canopies (eg. subsets). Canopies are based on distance to the dataset centroid.
+The use of canopies allows for reducing the time complexity of kNN by reducing
+it from 1 large problem to several smaller problems. In general, since canopies
+overlap with their neighbors, the use of canopies reduces the time complexity
+from  \eqn{2^{O(n)}} to approximately \eqn{2^{O(9n / c)}} where c is the number
+of canopies. Since, in large datasets, c can be quite large, this is a substantial
+savings.
+
+In small datasets (eg. roughly < 100000), canopies are not recommended. Canopies produce
+an approximate solution although they may produce an equivalent solution. Equivalence
+is guaranteed under the following condition. If for all observations x with k nearest
+neighbors, the canopy containing x also contains all k nearest neighbors. This should
+be the case when distance to each ovservation x is highly correlated to distance of
+each observation to the dataset centroid.
+}
 \examples{
 x = matrix(rnorm(100),10,10)
   x[x > 1] = NA
   kNN_impute(x, k=3, q=2)
 }
 \references{
-Improved Methods for the Impution of Missing Data by Nearest Neighbors Methods
+"Improved Methods for the Impution of Missing Data by Nearest Neighbors Methods"
 Tutz and Ramzan (2015)
+
+McCallum, Andrew, Kamal Nigam, and Lyle H. Ungar.
+"Efficient clustering of high-dimensional data sets with application to reference matching."
+Proceedings of the sixth ACM SIGKDD international conference on Knowledge
+discovery and data mining. ACM, 2000.
+}
+\seealso{
+\code{\link{create_canopies}}, \code{\link{kNN_impute.default}}.
 }
 

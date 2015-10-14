@@ -1,5 +1,4 @@
 
-
 #' @title Imputation using weighted-kNN
 #' @description Imputation using weighted k-nearest neighbors.
 #' For each record, identify missinng features.  For each missing feature
@@ -7,29 +6,52 @@
 #' value using the \eqn{k} nearest neighbors having that feature. Weights are computed
 #' using a Gaussian kernal bandwidth parameter using 'Silverman's rule of thumb'
 #' as described by Silverman (1998)
+#' @section Details:
+#' Imputation can be done on all observations in a single group or via overlapping
+#' canopies (eg. subsets). Canopies are based on distance to the dataset centroid.
+#' The use of canopies allows for reducing the time complexity of kNN by reducing 
+#' it from 1 large problem to several smaller problems. In general, since canopies 
+#' overlap with their neighbors, the use of canopies reduces the time complexity 
+#' from  \eqn{2^{O(n)}} to approximately \eqn{2^{O(9n / c)}} where c is the number
+#' of canopies. Since, in large datasets, c can be quite large, this is a substantial 
+#' savings.
+#' 
+#' In small datasets (eg. roughly < 100000), canopies are not recommended. Canopies produce
+#' an approximate solution although they may produce an equivalent solution. Equivalence
+#' is guaranteed under the following condition. If for all observations x with k nearest 
+#' neighbors, the canopy containing x also contains all k nearest neighbors. This should
+#' be the case when distance to each ovservation x is highly correlated to distance of
+#' each observation to the dataset centroid.
+#' @seealso \code{\link{create_canopies}}, \code{\link{kNN_impute.default}}.
 #' 
 #' @param x a \code{matrix} or \code{data.frame} which can be coerced to a matrix
 #'  where each row represents a different record
 #' @param k the number of neighbors to use for imputation
 #' @param q An integer specifying the which norm to take the L-q distance of.
-#' @param impute_fn The imputation function to run on the length k vector of values for
-#'   a missing feature.  Defaults to weighted mean-KNN; see Details. 
 #' @param verbose if \code{TRUE} print status updates
 #' @param check_scale Logical. If \code{TRUE} compute pairwise variance tests to see if
 #' variables are on a common scale. Bonferroni correction applied.
 #' @param parallel Logical. Do you wish to parallelize the code? Defaults to \code{TRUE}
 #' @param leave_cores How many cores do you wish to leave open to other processing?
-#' @references Improved Methods for the Impution of Missing Data by Nearest Neighbors Methods
+#' @param n_subsets if a positive integer > 1, kNN imputation will be calculated on data subsets 
+#' which are created in the data \code{x} based on a cheap distance metric. See details 
+#' @references "Improved Methods for the Impution of Missing Data by Nearest Neighbors Methods"
 #' Tutz and Ramzan (2015)
+#' @references McCallum, Andrew, Kamal Nigam, and Lyle H. Ungar. 
+#' "Efficient clustering of high-dimensional data sets with application to reference matching." 
+#' Proceedings of the sixth ACM SIGKDD international conference on Knowledge 
+#' discovery and data mining. ACM, 2000.
 #' @examples
 #'   x = matrix(rnorm(100),10,10)
 #'   x[x > 1] = NA
 #'   kNN_impute(x, k=3, q=2)
 #' @export
-kNN_impute = function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
-                      parallel= TRUE, leave_cores= 2) {
+
+kNN_impute <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
+                       parallel= TRUE, leave_cores= ifelse(detectCores() <= 4, 1, 2),
+                       n_canopies= NULL) {
   
-  # 01a. Do some preliminaries
+  # 01. Do some preliminaries
   #--------------------------------------------------------
   if (parallel == TRUE) {
     if (leave_cores < 0 | leave_cores > detectCores() | leave_cores %% 1 != 0) {
@@ -51,97 +73,74 @@ kNN_impute = function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
     stop("Please fix missing columns.")
   }
   
-  # 01b. Test if variables on same scale
-  #--------------------------------------------------------
-  if (check_scale) unequal_var <- var_tests(x, bonf= TRUE)
-  if (!is.null(unequal_var)) warning(paste("Some variables appear to have unequal variances.",
-                                           "KNN is best with equally scaled variables."))
+  # [10/13] add rownames such that impute_prelim() can work with or without canopies
+  # and so that impute_fn_knn_all.** work properly
+  if (is.null(rownames(x))) {
+    rownames(x) <- 1:nrow(x)
+    has_rownames <- FALSE
+  } else {
+    row_key <- data.frame(key= rownames(x), id= 1:nrow(x))
+    rownames(x) <- 1:nrow(x)
+    has_rownames <- TRUE
+  }
   
-  # 01d. Get Gaussian Kernal
-  #--------------------------------------------------------
-  # https://en.wikipedia.org/wiki/Kernel_density_estimation#Practical_estimation_of_the_bandwidth
-  opt_h <- (4 * sd(x, na.rm=T)^5 / (3 * nrow(x)))^(1/5)
-  kern <- rbfdot(opt_h)
-  
-  # 02a. Impute missing rows to complete-data column means 
-  #--------------------------------------------------------
-  if (any(row_na)) {
-    if (verbose) cat("row(s)", which(row_na), "are entirely missing. 
-                     These row(s)' values will be imputed to column means.")
-    warning("Rows with entirely missing values imputed to column means.")
+  if (is.null(n_canopies)) { 
+    # 02. Send to kNN_impute.default w/o canopies:
+    #--------------------------------------------------------
+    knn <- knn_impute.no_canopies(x= x, k= k, q= q, verbose= verbose, 
+                      check_scale= check_scale,
+                      parallel= parallel, leave_cores= leave_cores)
+    # check for rownames and exit
+    if (has_rownames) {
+      row_key <- row_key[rownames(knn$x),]
+      rownames(knn$x) <- row_key$key
+      return(knn)
+    } else {
+      return(knn)
+    }
+  } else {
+    # 03. Send to kNN_impute.canopies w/ canopies
+    #--------------------------------------------------------
+    if (n_canopies <= 3 | n_canopies %% 1 != 0) stop("n_canopies must be an integer > 3")
     
-    col_means <- colMeans(x, na.rm=T)
-    for (i in which(row_na)) {
-      x[i,] <- col_means
+    # verbose option
+    if (verbose) print("Computing canopies kNN solution provided within canopies")
+    # create canopies
+    x <- create_canopies(x, n_canopies= n_canopies, q= q)
+    if (verbose) print("Canopies complete... calculating kNN.")
+    
+    knn <- lapply(x, knn_impute.canopies, k= k, q= q, verbose= verbose, 
+                  check_scale= check_scale,
+                  parallel= parallel, leave_cores= leave_cores, n_canopies= n_canopies)
+    
+    ### 03b. combine and return results
+    if (lapply(knn, is.list) | any(lapply(knn, length) == 2)) { # have some errors
+      which_err <- which(lapply(knn, length) == 2)
+      num_errors <- sum(do.call("c", lapply(knn[which_err], "[[", 2)))  
+      
+      x_return <- do.call("rbind", lapply(knn, "[[", 1))
+      x_return <- x_return[order(as.integer(rownames(x_return))),]
+      # check for rownames and exit
+      if (has_rownames) {
+        row_key <- row_key[rownames(x_return),]
+        rownames(x_return) <- row_key$key
+        return(list(x=x_return, num_errors= num_errors))
+      } else {
+        return(list(x=x_return, num_errors= num_errors))
+      }
+    } 
+    else { # no errors
+      x_return <- do.call("rbind", knn)
+      x_return <- x_return[order(as.integer(rownames(x_return))),]
+      # check for rownames and exit
+      if (has_rownames) {
+        row_key <- row_key[rownames(x_return),]
+        rownames(x_return) <- row_key$key
+        return(list(x=x_return))
+      } else {
+        return(list(x=x_return))
+      }
     }
   }
-  
-  # 02b. Impute 
-  #--------------------------------------------------------
-  prelim = impute_prelim(x, parallel= parallel, leave_cores= leave_cores)
-  if (prelim$numMissing == 0) return (x) # no missing
-  
-  if (parallel == FALSE) {
-    # impute row-by-row -- non parallel
-    x_missing_imputed <- t(apply(prelim$x_missing, 1, function(i) {
-      rowIndex = as.numeric(i[1])
-      i_original = unlist(i[-1])
-      # verbose option
-      if(verbose) {print(paste("Imputing row", rowIndex, sep=" "))}
-      
-      missing_cols <- which(is.na(x[rowIndex,]))
-      
-      # calculate distances
-      distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
-      
-      # within the given row, impute by column
-      imputed_values <- unlist(lapply(missing_cols, function(j, distances) {
-        # which neighbors have data on column j?
-        neighbor_indices = which(!is.na(x)[,j])
-        # impute
-        return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
-      }, distances= distances))
-      i_original[missing_cols] <- imputed_values
-      return(i_original)
-    }))
-  } else if (parallel == TRUE) {
-    # impute row-by-row -- parallel 
-    cl <- makeCluster(detectCores() - leave_cores)
-    
-    x_missing_imputed <- parRapply(cl= cl, prelim$x_missing, function(i) {
-      rowIndex = as.numeric(i[1])
-      i_original = unlist(i[-1])
-      # verbose option -- in parallel, I think this only returns at the end.
-#       if(verbose) print(paste("Imputing row", rowIndex, sep=" "))
-      missing_cols <- which(is.na(x[rowIndex,]))
-      
-      # calculate distances
-      distances <- dist_q.matrix(rbind(x[rowIndex, ], x[-rowIndex,]), ref= 1, q= q)
-      
-      # within the given row, impute by column
-      imputed_values <- unlist(lapply(missing_cols, function(j, distances) {
-        # which neighbors have data on column j?
-        neighbor_indices = which(!is.na(x)[,j])
-        # impute
-        return(impute_fn_knn(x[neighbor_indices, j], distances[neighbor_indices], k=k, kern= kern))
-      }, distances= distances))
-      i_original[missing_cols] <- imputed_values
-      return(i_original)
-    })
-    stopCluster(cl)
-    x_missing_imputed <- matrix(x_missing_imputed, nrow= dim(prelim$x_missing)[1],
-                                ncol= dim(prelim$x_missing)[2] - 1, byrow= TRUE)
-  }
-  
-  # insert imputations
-  x[prelim$missing_rows_indices,] <- x_missing_imputed
-  
-  # 03. Validate and return
-  #--------------------------------------------------------
-  num_errors = sum(is.na(x))
-  if (num_errors > 0) {
-    return(list(x=x, num_errors= num_errors))
-  } else {
-    return(list(x=x))  
-  }
 }
+

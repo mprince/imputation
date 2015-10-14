@@ -16,7 +16,9 @@ impute_fn_knn(values, distances, k, kern)
 \item{kern}{The Gaussian kernal used for weighting}
 }
 \description{
-Function for KNN imputation. Distances are weighted by a kernal function
+Function for KNN imputation for a single element.
+Distances are weighted by a kernal function to produce a weighted
+imputation.
 }
 \seealso{
 \code{\link[kernlab]{dots}}

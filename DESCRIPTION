@@ -1,14 +1,18 @@
 Package: imputation
 Type: Package
 Title: imputation
-Version: 0.5.1
-Date: 2015-10-06
+Version: 0.6
+Date: 2015-10-14
 Authors@R: person("Alex", "Whitworth", email = "whitworth.alex@gmail.com",
   role = c("aut","cre"))
 URL: https://github.com/alexwhitworth/imputation
-Description: Impute missing values in a data matrix using weighted-kNN.
-  Weights in w-kNN are specified using a Gaussian kernal, specified by kernlab.
-  Parallel computing is allowed (version 0.4). Timing tests indicate that the current implementation has exponential time complexity. I suggest not using it on datasets of ~10^5 observations
+Description: Impute missing values in a data matrix using weighted-kNN. Weights
+     in w-kNN are specified using a Gaussian kernel, specified by kernlab. v0.4
+     introduces parallel computing. v0.6 implements canopies (ie-subsets) with
+     approximate solutions for large datasets... Timing tests indicate that the
+     current implementation has exponential time complexity. I suggest not
+     using canopies on datasets with < ~10^5 observations and using canopies on
+     datasets with > ~10^5 observations.
 License: GPL
 LazyLoad: yes
 Depends:
