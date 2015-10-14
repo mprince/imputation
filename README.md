@@ -31,7 +31,7 @@ Canopies produce an approximate solution although they may produce an equivalent
 
 ## References:
 * [Improved methods for the imputation of missing data by nearest neighbor methods](http://www.sciencedirect.com/science/article/pii/S0167947315001061) Tutz and Ramzan 2015
-* [Efficient clustering of high-dimensional data sets with application to reference matching](ftp://ftp.cse.buffalo.edu/users/azhang/disc/disc01/cd1/out/papers/kdd/p169-mccallum.pdf) McCallum et al 2000
+* [Efficient clustering of high-dimensional data sets with application to reference matching](http://machinelearning102.pbworks.com/w/file/fetch/47221870/canopy-kdd00.pdf) McCallum et al 2000
 
 ## Imputation Algorithms Presented
 
