@@ -94,13 +94,15 @@ kNN_impute.canopies <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
   if (prelim$numMissing == 0) return (x_can) # no missing
   
   if (parallel == FALSE) {
-    x_missing_imputed <- impute_fn_knn_all.nonPar(x_missing= prelim$x_missing,
-                               x_complete= x, k=k, q=q, 
-                               kern= kern, verbose= verbose)
+    x_missing_imputed <- impute_fn_knn_all.nonPar(
+          x_missing= prelim$x_missing[, -ncol(prelim$x_missing)],
+          x_complete= x[,-ncol(x)], k=k, q=q, 
+          kern= kern, verbose= verbose)
   } else if (parallel == TRUE) {
-    x_missing_imputed <- impute_fn_knn_all.Par(x_missing= prelim$x_missing,
-                               x_complete= x, k=k, q=q, 
-                               kern= kern, leave_cores= leave_cores)
+    x_missing_imputed <- impute_fn_knn_all.Par(
+          x_missing= prelim$x_missing[, -ncol(prelim$x_missing)],
+          x_complete= x[,-ncol(x)], k=k, q=q, 
+          kern= kern, leave_cores= leave_cores)
   }
   
   # insert imputations

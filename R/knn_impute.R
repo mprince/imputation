@@ -87,7 +87,7 @@ kNN_impute <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
   if (is.null(n_canopies)) { 
     # 02. Send to kNN_impute.default w/o canopies:
     #--------------------------------------------------------
-    knn <- knn_impute.no_canopies(x= x, k= k, q= q, verbose= verbose, 
+    knn <- kNN_impute.no_canopies(x= x, k= k, q= q, verbose= verbose, 
                       check_scale= check_scale,
                       parallel= parallel, leave_cores= leave_cores)
     # check for rownames and exit
@@ -109,7 +109,7 @@ kNN_impute <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
     x <- create_canopies(x, n_canopies= n_canopies, q= q)
     if (verbose) print("Canopies complete... calculating kNN.")
     
-    knn <- lapply(x, knn_impute.canopies, k= k, q= q, verbose= verbose, 
+    knn <- lapply(x, kNN_impute.canopies, k= k, q= q, verbose= verbose, 
                   check_scale= check_scale,
                   parallel= parallel, leave_cores= leave_cores, n_canopies= n_canopies)
     

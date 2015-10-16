@@ -96,8 +96,8 @@ impute_fn_knn_all.Par <- function(x_missing, x_complete, k, q, kern,
     missing_cols <- which(is.na(x_complete[x_comp_rowID,]))
     
     # calculate distances
-    distances <- dist_q.matrix(rbind(x_complete[x_comp_rowID, ], x_complete[-x_comp_rowID,]), 
-                               ref= 1, q= q)
+    distances <- dist_q.matrix(x=rbind(x_complete[x_comp_rowID, ], x_complete[-x_comp_rowID,]), ref= 1, 
+                               q= q)
     
     # within the given row, impute by column
     imputed_values <- unlist(lapply(missing_cols, function(j, distances) {
