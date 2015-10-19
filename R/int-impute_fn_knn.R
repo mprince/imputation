@@ -89,14 +89,14 @@ impute_fn_knn_all.Par <- function(x_missing, x_complete, k, q, kern,
   # impute row-by-row -- parallel 
   cl <- makeCluster(detectCores() - leave_cores)
   
-  x_missing_imputed <- parRapply(cl= cl, x_missing, function(i) {
+  x_missing_imputed <- parRapply(cl= cl, x_missing, function(i, x_complete) {
     rowID = as.numeric(i[1])
     i_original = unlist(i[-1])
     x_comp_rowID <- which(as.integer(rownames(x_complete)) == rowID)
     missing_cols <- which(is.na(x_complete[x_comp_rowID,]))
     
     # calculate distances
-    distances <- dist_q.matrix(x=rbind(x_complete[x_comp_rowID, ], x_complete[-x_comp_rowID,]), ref= 1, 
+    distances <- dist_q.matrix(x=rbind(x_complete[x_comp_rowID, ], x_complete[-x_comp_rowID,]), ref= 1L, 
                                q= q)
     
     # within the given row, impute by column
@@ -109,7 +109,7 @@ impute_fn_knn_all.Par <- function(x_missing, x_complete, k, q, kern,
     }, distances= distances))
     i_original[missing_cols] <- imputed_values
     return(i_original)
-  })
+  }, x_complete= x_complete)
   stopCluster(cl)
   x_missing_imputed <- matrix(x_missing_imputed, nrow= dim(x_missing)[1],
                               ncol= dim(x_missing)[2] - 1, byrow= TRUE)

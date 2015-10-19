@@ -21,8 +21,11 @@ test_that("errors work correctly", {
   expect_error(kNN_impute(x1, k= 5, q= 1, parallel= TRUE, leave_cores= -1))
   expect_error(kNN_impute(x1, k= 5, q= 1, parallel= TRUE, leave_cores= 2.5))
   ## trivial case equality
-  expect_equal(kNN_impute(x1, k= 3), x1)
-  expect_equal(kNN_impute(x1, k= 3, parallel= FALSE), x1)
+  k1 <- kNN_impute(x1, k= 3)
+  k2 <- kNN_impute(x1, k= 3, parallel= FALSE)
+  dimnames(k1) <- dimnames(k2) <-NULL
+  expect_equal(k1, x1)
+  expect_equal(k2, x1)
   # column NA
   x1[,1] <- NA
   expect_error(kNN_impute(x1, parallel= FALSE))

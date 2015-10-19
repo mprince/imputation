@@ -106,7 +106,7 @@ kNN_impute.canopies <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
   }
   
   # insert imputations
-  x_can[prelim$missing_rows_indices,] <- x_missing_imputed
+  x_can[prelim$missing_rows_indices, -ncol(x_can)] <- x_missing_imputed
   
   # 03. Validate and return
   #--------------------------------------------------------
