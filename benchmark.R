@@ -21,7 +21,7 @@ dat_list <- lapply(dat_list, function(l) {l[l>1.25] <- NA; return(l)})
   n1000= kNN_impute(x= dat_list[[3]], k=3, q= 4, verbose= FALSE, check_scale= FALSE,
                   parallel= FALSE), 
   n10000= kNN_impute(x= dat_list[[4]], k=3, q= 4, verbose= FALSE, check_scale= FALSE,
-                  parallel= FALSE), times= 50L))
+                  parallel= FALSE), times= 20L))
 
 
 # 02. parallel, no canopies
@@ -34,7 +34,7 @@ dat_list <- lapply(dat_list, function(l) {l[l>1.25] <- NA; return(l)})
   n1000= kNN_impute(x= dat_list[[3]], k=3, q= 4, verbose= FALSE, check_scale= FALSE,
                     parallel= TRUE, leave_cores= 1), 
   n10000= kNN_impute(x= dat_list[[4]], k=3, q= 4, verbose= FALSE, check_scale= FALSE,
-                     parallel= TRUE, leave_cores= 1), times= 50L))
+                     parallel= TRUE, leave_cores= 1), times= 20L))
 
 # 03. parallel, canopies vs no-canopies
 #------------------------------------------------
@@ -46,4 +46,4 @@ dat_list <- lapply(dat_list, function(l) {l[l>1.25] <- NA; return(l)})
   n10k_can= kNN_impute(x= dat_list[[4]], k=3, q= 4, verbose= FALSE, check_scale= FALSE,
                     parallel= TRUE, leave_cores= 1, n_canopies= 100), 
   n100k_can= kNN_impute(x= dat_list[[5]], k=3, q= 4, verbose= FALSE, check_scale= FALSE,
-                     parallel= TRUE, leave_cores= 1, n_canopies= 1000), times= 50L))
+                     parallel= TRUE, leave_cores= 1, n_canopies= 1000), times= 10L))
