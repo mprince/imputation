@@ -25,7 +25,7 @@ dist_q <- function(x, y, q= 2) {
 #' @param q An integer specifying the which norm to take the L-q distance of.
 #' @return a numeric vector of length \code{nrow(x) - 1}
 #' @export
-dist_q.matrix <- function(x, ref= 1, q= 2) {
+dist_q.matrix <- function(x, ref= 1L, q= 2) {
   if (!is.numeric(x) | !is.matrix(x)) stop("x must be a numeric matrix.")
   if (ref < 1 | ref > nrow(x) | ref %% 1 != 0) 
     stop("ref must be an integer in {1, nrow(x)}.")

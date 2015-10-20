@@ -57,7 +57,7 @@ impute_fn_knn_all.nonPar <- function(x_missing, x_complete, k, q, kern,
     # calculate distances
     
     distances <- dist_q.matrix(rbind(x_complete[x_comp_rowID, ], x_complete[-x_comp_rowID,]), 
-                               ref= 1, q= q)
+                               ref= 1L, q= q)
     
     # within the given row, impute by column
     imputed_values <- unlist(lapply(missing_cols, function(j, distances) {
@@ -86,18 +86,20 @@ impute_fn_knn_all.nonPar <- function(x_missing, x_complete, k, q, kern,
 # @param leave_cores How many cores do you wish to leave open to other processing?
 impute_fn_knn_all.Par <- function(x_missing, x_complete, k, q, kern,
                                   leave_cores) { 
-  # impute row-by-row -- parallel 
-  cl <- makeCluster(detectCores() - leave_cores)
+  ### [AW 10/20] resolve edge case when nnodes > nrow(x_missing)
+  nnodes <- min(nrow(x_missing), detectCores() - leave_cores)
+  cl <- makeCluster(nnodes)
   
-  x_missing_imputed <- parRapply(cl= cl, x_missing, function(i, x_complete) {
+  # impute row-by-row -- parallel 
+  x_missing_imputed <- parRapply(cl= cl, x_missing, function(i, x_complete, kern) {
     rowID = as.numeric(i[1])
     i_original = unlist(i[-1])
     x_comp_rowID <- which(as.integer(rownames(x_complete)) == rowID)
     missing_cols <- which(is.na(x_complete[x_comp_rowID,]))
     
     # calculate distances
-    distances <- dist_q.matrix(x=rbind(x_complete[x_comp_rowID, ], x_complete[-x_comp_rowID,]), ref= 1L, 
-                               q= q)
+    distances <- dist_q.matrix(x=rbind(x_complete[x_comp_rowID, ], x_complete[-x_comp_rowID,]), 
+                               ref= 1L, q= q)
     
     # within the given row, impute by column
     imputed_values <- unlist(lapply(missing_cols, function(j, distances) {
@@ -109,7 +111,8 @@ impute_fn_knn_all.Par <- function(x_missing, x_complete, k, q, kern,
     }, distances= distances))
     i_original[missing_cols] <- imputed_values
     return(i_original)
-  }, x_complete= x_complete)
+  }, x_complete= x_complete, kern= kern)
+  
   stopCluster(cl)
   x_missing_imputed <- matrix(x_missing_imputed, nrow= dim(x_missing)[1],
                               ncol= dim(x_missing)[2] - 1, byrow= TRUE)

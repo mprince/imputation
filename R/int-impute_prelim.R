@@ -19,7 +19,9 @@ impute_prelim = function(x, parallel= FALSE, leave_cores= 2) {
       any(is.na(j))
     }))
   } else {
-    cl <- makeCluster(detectCores() - leave_cores)
+    # [AW 10/20] resolve edge case when nnodes > nrow(x_missing)
+    nnodes <- min(nrow(x), detectCores() - leave_cores)
+    cl <- makeCluster(nnodes)
     
     missing_rows_indices = which(parRapply(cl= cl, x, function(i) {
       any(is.na(i))

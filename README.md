@@ -8,7 +8,7 @@ Tests on the current version indicate the algorithm runs with exponential time c
 Canopies produce an approximate solution although they may produce an equivalent solution. Equivalence is guaranteed under the following condition. If for all observations x with k nearest neighbors, the canopy containing x also contains all k nearest neighbors. This should be the case when distance to each ovservation x is highly correlated to distance of each observation to the dataset centroid.
 
 ## Release Notes
-- **10/14/2015**: v0.6 -- implements canopies based on the ideas in McCallum et al (2000) to reduce computation time when working with large datasets.
+- **10/20/2015**: v0.6.1 -- implements canopies based on the ideas in McCallum et al (2000) to reduce computation time when working with large datasets.
 - **10/6/2015**: Wrote and passed unit tests. v0.5
 - **10/5/2015**: Removed references to `sapply(...)`, using `unlist(lapply(...))` instead. Added parallel option to `impute_prelim` (v0.4.1.).
 - **9/29/2015**: Timing tests indicate that the current implementation of `kNN_impute` has exponential time complexity. I suggest not using it on datasets of ~10^5 observations

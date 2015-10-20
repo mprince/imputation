@@ -32,7 +32,7 @@ create_canopies <- function(x, n_canopies, q) {
   
   # calculate distance to data centroid and create canopies
   col_means <- colMeans(x, na.rm=T)
-  mean_dist <- dist_q.matrix(x= rbind(col_means, x), ref= 1, q= q)
+  mean_dist <- dist_q.matrix(x= rbind(col_means, x), ref= 1L, q= q)
   
   # if any missing rows, denote missing distance as VERY LARGE:
   mean_dist <- ifelse(is.na(mean_dist) | is.nan(mean_dist), 10e5, mean_dist)
