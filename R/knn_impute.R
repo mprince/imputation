@@ -114,12 +114,13 @@ kNN_impute <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
                   parallel= parallel, leave_cores= leave_cores, n_canopies= n_canopies)
     
     ### 03b. combine and return results
-    if (lapply(knn, is.list) | any(lapply(knn, length) == 2)) { # have some errors
+    if (all(sapply(knn, is.list)) & any(lapply(knn, length) == 2)) { # have some errors
       which_err <- which(lapply(knn, length) == 2)
       num_errors <- sum(do.call("c", lapply(knn[which_err], "[[", 2)))  
       
-      x_return <- do.call("rbind", lapply(knn, "[[", 1))
+      x_return <- do.call("rbind", lapply(knn, function(l) return(l$x)))
       x_return <- x_return[order(as.integer(rownames(x_return))),]
+      x_return <- x_return[, -ncol(x_return)]
       # check for rownames and exit
       if (has_rownames) {
         row_key <- row_key[rownames(x_return),]
@@ -130,8 +131,9 @@ kNN_impute <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
       }
     } 
     else { # no errors
-      x_return <- do.call("rbind", knn)
+      x_return <- do.call("rbind", lapply(knn, function(l) return(l$x)))
       x_return <- x_return[order(as.integer(rownames(x_return))),]
+      x_return <- x_return[, -ncol(x_return)]
       # check for rownames and exit
       if (has_rownames) {
         row_key <- row_key[rownames(x_return),]

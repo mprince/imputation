@@ -64,6 +64,7 @@ test_that("simple cases work correctly", {
   can5 <- function(l, k, q, ...) {
     l2 <- lapply(l, kNN_impute.canopies, k= k, q=q, verbose= FALSE, n_canopies= 5, ... = ...)
     l2 <- do.call("rbind", lapply(l2, "[[", 1))
+    l2 <- l2[, -ncol(l2)]
     return(l2[order(as.integer(rownames(l2))),])
   }
   
