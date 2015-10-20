@@ -51,9 +51,11 @@ kNN_impute.no_canopies <- function(x, k, q= 2, verbose=TRUE, check_scale= TRUE,
   
   # 01b. Test if variables on same scale
   #--------------------------------------------------------
-  if (check_scale) unequal_var <- var_tests(x, bonf= TRUE)
-  if (!is.null(unequal_var)) warning(paste("Some variables appear to have unequal variances.",
-                                           "KNN is best with equally scaled variables."))
+  if (check_scale) {
+    unequal_var <- var_tests(x[, -can_id], bonf= TRUE)
+    if (!is.null(unequal_var)) warning(paste("Some variables appear to have unequal variances.",
+                                             "KNN is best with equally scaled variables."))
+  }
   
   # 01d. Get Gaussian Kernal
   #--------------------------------------------------------
