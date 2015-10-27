@@ -47,3 +47,6 @@ dat_list <- lapply(dat_list, function(l) {l[l>1.25] <- NA; return(l)})
                     parallel= TRUE, leave_cores= 1, n_canopies= 100), 
   n100k_can= kNN_impute(x= dat_list[[5]], k=3, q= 4, verbose= FALSE, check_scale= FALSE,
                      parallel= TRUE, leave_cores= 1, n_canopies= 1000), times= 10L))
+
+
+# save.image("knn_timing.Rdata")
