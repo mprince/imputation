@@ -1,4 +1,7 @@
 
+#' @useDynLib imputation
+#' @importFrom Rcpp sourceCpp
+
 #' @title Imputation using weighted-kNN
 #' @description Imputation using weighted k-nearest neighbors.
 #' For each record, identify missinng features.  For each missing feature

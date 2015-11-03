@@ -1,22 +1,4 @@
 
-#' @title Calculate \eqn{L_q} distance of two vectors
-#' @description Calculate \eqn{L_q} distance of two vectors
-#' @param x A numeric vector. Missing values are allowed.
-#' @param y A numeric vector. Missing values are allowed.
-#' @param q An integer specifying the which norm to take the L-q distance of.
-#' @return a scalar
-#' @export
-dist_q <- function(x, y, q= 2) {
-  if (!is.numeric(x) | !is.numeric(y)) stop("Both x and y must be numeric.")
-  if (q < 1 | q %% 1 != 0) stop("q must be an integer >= 1")
-  
-  x_obs <- !is.na(x)
-  y_obs <- !is.na(y)
-  m <- sum(x_obs * y_obs)
-  
-  return((1 / m * sum(abs(x - y)^q, na.rm=TRUE))^(1/q))
-}
-
 #' @title Calculate \eqn{L_q} distance 
 #' @description Calculate \eqn{L_q} distance of all vectors in a matrix to a reference
 #' vector.
@@ -34,7 +16,7 @@ dist_q.matrix <- function(x, ref= 1L, q= 2) {
   x_ref <- x[ref,]
   x_rest <- x[-ref,]
   
-  return(apply(x_rest, 1, dist_q, y= x_ref, q= q))
+  return(.Call("imputation_dist_q_matrix", PACKAGE= 'imputation', x_ref, x_rest, q))
 }
 
 

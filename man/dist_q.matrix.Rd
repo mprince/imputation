@@ -4,7 +4,7 @@
 \alias{dist_q.matrix}
 \title{Calculate \eqn{L_q} distance}
 \usage{
-dist_q.matrix(x, ref = 1, q = 2)
+dist_q.matrix(x, ref = 1L, q = 2)
 }
 \arguments{
 \item{x}{A numeric matrix Missing values are allowed.}

@@ -1,7 +1,7 @@
 Package: imputation
 Type: Package
 Title: imputation
-Version: 0.6.1
+Version: 0.7.0
 Date: 2015-10-20
 Authors@R: person("Alex", "Whitworth", email = "whitworth.alex@gmail.com",
   role = c("aut","cre"))
@@ -18,3 +18,5 @@ LazyLoad: yes
 Depends:
     locfit, kernlab (>= 0.9), parallel (>= 3.0)
 Suggests: testthat
+LinkingTo: Rcpp
+Imports: Rcpp
