@@ -18,16 +18,16 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// dist_q_matrixCpp
-NumericVector dist_q_matrixCpp(NumericVector& x_ref, NumericMatrix& x_rest, int& q);
-RcppExport SEXP imputation_dist_q_matrixCpp(SEXP x_refSEXP, SEXP x_restSEXP, SEXP qSEXP) {
+// dist_q_matrix
+NumericVector dist_q_matrix(NumericVector& x_ref, NumericMatrix& x_rest, int& q);
+RcppExport SEXP imputation_dist_q_matrix(SEXP x_refSEXP, SEXP x_restSEXP, SEXP qSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< NumericVector& >::type x_ref(x_refSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type x_rest(x_restSEXP);
     Rcpp::traits::input_parameter< int& >::type q(qSEXP);
-    __result = Rcpp::wrap(dist_q_matrixCpp(x_ref, x_rest, q));
+    __result = Rcpp::wrap(dist_q_matrix(x_ref, x_rest, q));
     return __result;
 END_RCPP
 }
