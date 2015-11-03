@@ -16,7 +16,7 @@ dist_q.matrix <- function(x, ref= 1L, q= 2) {
   x_ref <- x[ref,]
   x_rest <- x[-ref,]
   
-  return(.Call("imputation_dist_q_matrix", PACKAGE= 'imputation', x_ref, x_rest, q))
+  return(.Call('imputation_dist_q_matrix', PACKAGE = 'imputation', x_ref, x_rest, q))
 }
 
 
