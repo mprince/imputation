@@ -8,6 +8,7 @@ Tests on the current version indicate the algorithm runs with exponential time c
 Canopies produce an approximate solution although they may produce an equivalent solution. Equivalence is guaranteed under the following condition. If for all observations x with k nearest neighbors, the canopy containing x also contains all k nearest neighbors. This should be the case when distance to each ovservation x is highly correlated to distance of each observation to the dataset centroid.
 
 ## Release Notes
+- **11/3/2015**: v0.7 released. Distance calculations now done in C++ (via Rcpp). Timing tests (same dimensions as below) on the serialized code indicate a ~40% improvement in speed at both 1k and 10k obs. At 100 obs it's only about a third faster.
 - **10/26/2015**: Timing tests (see `profile1.R` and `knn_timing.Rdata`) run on Intel Xeon processor using 7 of 8 cores with variable n= c(10, 100, 1000, 10000, 100000) and p = 30.
     - *Non-parallel:* Tests indicate that non-parallel code is roughly O(n^2) or possibly slightly faster.
     - *Parallel:* Parallel code (7 cores) runtime is roughly 42% faster at 1000 obs and 77% faster at 10000 obs, although parallel exhibits exponential time complexity.
