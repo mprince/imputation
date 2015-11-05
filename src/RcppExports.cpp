@@ -5,6 +5,43 @@
 
 using namespace Rcpp;
 
+// weighted_mean
+double weighted_mean(NumericVector& x, NumericVector w);
+RcppExport SEXP imputation_weighted_mean(SEXP xSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
+    __result = Rcpp::wrap(weighted_mean(x, w));
+    return __result;
+END_RCPP
+}
+// impute_fn_knn
+double impute_fn_knn(NumericVector& values, NumericVector& distances, int& k, double& sigma);
+RcppExport SEXP imputation_impute_fn_knn(SEXP valuesSEXP, SEXP distancesSEXP, SEXP kSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector& >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type distances(distancesSEXP);
+    Rcpp::traits::input_parameter< int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< double& >::type sigma(sigmaSEXP);
+    __result = Rcpp::wrap(impute_fn_knn(values, distances, k, sigma));
+    return __result;
+END_RCPP
+}
+// sort_indexes
+std::vector<size_t> sort_indexes(std::vector<double>& values);
+RcppExport SEXP imputation_sort_indexes(SEXP valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< std::vector<double>& >::type values(valuesSEXP);
+    __result = Rcpp::wrap(sort_indexes(values));
+    return __result;
+END_RCPP
+}
 // dist_q
 double dist_q(NumericVector x, NumericVector y, int& q);
 RcppExport SEXP imputation_dist_q(SEXP xSEXP, SEXP ySEXP, SEXP qSEXP) {
@@ -28,6 +65,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type x_rest(x_restSEXP);
     Rcpp::traits::input_parameter< int& >::type q(qSEXP);
     __result = Rcpp::wrap(dist_q_matrix(x_ref, x_rest, q));
+    return __result;
+END_RCPP
+}
+// which_na
+SEXP which_na(SEXP x);
+RcppExport SEXP imputation_which_na(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    __result = Rcpp::wrap(which_na(x));
     return __result;
 END_RCPP
 }
