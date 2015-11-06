@@ -1,8 +1,6 @@
 
 #include <Rcpp.h>
 #include <algorithm>
-#include "which_na.cpp"
-#include "sort_indices.cpp"
 #include <iostream>
 #include <vector>
 
@@ -24,13 +22,13 @@ NumericVector kern_wt (double& sigma, NumericVector& x) {
   return ret;
 }
 
-// @title Weighted Mean (C++)
-// @description Compute a weighted mean
-// @param x A \code{NumericVector} of values whose mean is to be computed.
-// @param w A \code{NumericVector} of weights of the same length as \code{x}
-// giving the weights to use for the elements of x.
-// @return a scalar.
-// @seealso \code{\link[stats]{weighted.mean}}
+//' @title Weighted Mean (C++)
+//' @description Compute a weighted mean
+//' @param x A \code{NumericVector} of values whose mean is to be computed.
+//' @param w A \code{NumericVector} of weights of the same length as \code{x}
+//' giving the weights to use for the elements of x.
+//' @return a scalar.
+//' @seealso \code{\link[stats]{weighted.mean}}
 // [[Rcpp::export]]
 double weighted_mean(NumericVector& x, NumericVector w) {
   if (x.size() != w.size()) {
@@ -69,7 +67,7 @@ IntegerVector callRfunc (NumericVector& x, Function f) {
 double impute_fn_knn (NumericVector& values, NumericVector& distances, int& k, double& sigma) {
   NumericVector small_dist(k), knn_values(k);
   // IntegerVector rnks = callRfunc(x, order) - 1;
-  IntegerVector rnks = (IntegerVector) sort_indexes(distances);
+  IntegerVector rnks = sort_indexes(distances);
 
   for (int i = 0; i < k; i++) {
     small_dist[i] = distances[ rnks[i] ];
